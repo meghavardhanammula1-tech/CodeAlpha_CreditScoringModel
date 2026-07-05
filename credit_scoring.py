@@ -8,6 +8,9 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 # Load Dataset
 df = pd.read_csv("dataset.csv")
 
+# Feature Engineering
+df['Loan_to_Income'] = df['LoanAmount'] / df['Income']
+
 print("First 5 Rows:")
 print(df.head())
 
@@ -16,12 +19,15 @@ X = df.drop("Approved", axis=1)
 y = df["Approved"]
 
 # Split Data
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
 
 # Logistic Regression
-lr = LogisticRegression(max_iter=1000)
+lr = LogisticRegression(max_iter=1000, class_weight='balanced')
 lr.fit(X_train, y_train)
 lr_pred = lr.predict(X_test)
 
@@ -31,7 +37,7 @@ print(classification_report(y_test, lr_pred))
 print(confusion_matrix(y_test, lr_pred))
 
 # Decision Tree
-dt = DecisionTreeClassifier(random_state=42)
+dt = DecisionTreeClassifier(random_state=42, class_weight='balanced')
 dt.fit(X_train, y_train)
 dt_pred = dt.predict(X_test)
 
@@ -41,7 +47,7 @@ print(classification_report(y_test, dt_pred))
 print(confusion_matrix(y_test, dt_pred))
 
 # Random Forest
-rf = RandomForestClassifier(random_state=42)
+rf = RandomForestClassifier(n_estimators=200, random_state=42, class_weight='balanced')
 rf.fit(X_train, y_train)
 rf_pred = rf.predict(X_test)
 
